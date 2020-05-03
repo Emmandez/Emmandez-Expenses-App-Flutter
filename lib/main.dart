@@ -42,10 +42,27 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _userTransactions = [];
 
   bool _showChart = false;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    print(state);
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  dispose(){
+    WidgetsBinding.instance.removeObserver(this); 
+    super.dispose();
+  }
 
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((tx) {
@@ -79,12 +96,9 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final _isLandscape = mediaQuery.orientation == Orientation.landscape;
-    final PreferredSizeWidget appBar = Platform.isIOS
-        ? CupertinoNavigationBar(
+  Widget getCupertinoNavBar(){
+
+    return CupertinoNavigationBar(
             middle: Text('Personal Expenses'),
             trailing: Row(
               //To be only as big as their children need to be
@@ -96,12 +110,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 )
               ],
             ),
-          )
-        : AppBar(
+          );
+  }
+
+  Widget getMaterialNavBar(){
+    return AppBar(
             title: Text(
               'Personal Expenses',
               style: TextStyle(fontFamily: 'OpenSans'),
-            ),
+            ), 
             actions: <Widget>[
               IconButton(
                 icon: Icon(
@@ -111,6 +128,15 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final _isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final PreferredSizeWidget appBar = Platform.isIOS
+        ? getCupertinoNavBar()
+        : getMaterialNavBar();
 
     final txListWidget = Container(
       height: (mediaQuery.size.height -
